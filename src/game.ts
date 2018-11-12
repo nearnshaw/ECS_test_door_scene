@@ -8,16 +8,16 @@ export class DoorState {
 
 const doors = engine.getComponentGroup(Transform, DoorState)
 
-export class RotatorSystem {
+export class RotatorSystem implements ISystem {
  
   update(dt: number) {
     for (let entity of doors.entities) {
-      let rotation = entity.get(Transform).rotation
+      let transform = entity.get(Transform)
 
-      if (entity.get(DoorState).closed == false && rotation.y <= 90) {
-        rotation.y += dt * 50
-      } else if (entity.get(DoorState).closed == true && rotation.y > 0) {
-        rotation.y -= dt * 50
+      if (entity.get(DoorState).closed == false && transform.rotation.eulerAngles.y <= 90) {
+        transform.rotate(new Vector3(0, dt * 50, 0))
+      } else if (entity.get(DoorState).closed == true && transform.rotation.eulerAngles.y > 0) {
+        transform.rotate(new Vector3(0, -dt * 50, 0))
       }
     }
   }
@@ -49,7 +49,6 @@ const doorWrapper = new Entity()
 doorWrapper.set(new DoorState())
 doorWrapper.set(new Transform())
 doorWrapper.get(Transform).position.set(4, 1, 3)
-doorWrapper.get(Transform).rotation.set(0, 0, 0)
 
 // Add actual door to scene. This entity doesn't rotate, its parent drags it with it.
 const door = new Entity()
