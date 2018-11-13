@@ -15,9 +15,9 @@ export class RotatorSystem implements ISystem {
       let transform = entity.get(Transform)
 
       if (entity.get(DoorState).closed == false && transform.rotation.eulerAngles.y <= 90) {
-        transform.rotate(new Vector3(0, dt * 50, 0))
+        transform.rotate(Vector3.Up(), dt * 50)
       } else if (entity.get(DoorState).closed == true && transform.rotation.eulerAngles.y > 0) {
-        transform.rotate(new Vector3(0, -dt * 50, 0))
+        transform.rotate(Vector3.Down(), dt * 50)
       }
     }
   }
