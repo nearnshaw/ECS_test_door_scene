@@ -66,7 +66,7 @@ door.set(
 )
 
 // Set the door as a child of doorWrapper
-door.parent = doorWrapper
+door.setParent(doorWrapper)
 
 // Add all entities to engine
 engine.addEntity(wall1)
