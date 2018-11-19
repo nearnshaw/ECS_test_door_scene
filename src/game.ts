@@ -45,10 +45,10 @@ wall2.set(new BoxShape())
 wall2.get(BoxShape).withCollisions = true
 
 // Define wrapper entity to rotate door. This is the entity that actually rotates.
-const doorWrapper = new Entity()
-doorWrapper.set(new DoorState())
-doorWrapper.set(new Transform())
-doorWrapper.get(Transform).position.set(4, 1, 3)
+const doorPivot = new Entity()
+doorPivot.set(new Transform())
+doorPivot.get(Transform).position.set(4, 1, 3)
+doorPivot.set(new DoorState())
 
 // Add actual door to scene. This entity doesn't rotate, its parent drags it with it.
 const door = new Entity()
@@ -60,18 +60,18 @@ door.set(doorMaterial)
 door.get(BoxShape).withCollisions = true
 door.set(
   new OnClick(_ => {
-    let doorClosed = doorWrapper.get(DoorState)
+    let doorClosed = doorPivot.get(DoorState)
     doorClosed.closed = !doorClosed.closed
   })
 )
 
-// Set the door as a child of doorWrapper
-door.setParent(doorWrapper)
+// Set the door as a child of doorPivot
+door.setParent(doorPivot)
 
 // Add all entities to engine
 engine.addEntity(wall1)
 engine.addEntity(wall2)
-engine.addEntity(doorWrapper)
+engine.addEntity(doorPivot)
 engine.addEntity(door)
 
 // Add system to engine

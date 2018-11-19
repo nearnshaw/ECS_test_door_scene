@@ -66,3 +66,6 @@ typings/
 
 # build files
 bin/
+
+# package lock
+package-lock.json
