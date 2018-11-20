@@ -1,6 +1,10 @@
 @Component('doorState')
 export class DoorState {
   closed: boolean = true
+  openPos: Vector3 = new Vector3(0, 90, 0)
+  closedPos: Vector3 = new Vector3(0, 0, 0)
+  fraction: number = 0
+
   constructor(closed : boolean = true){
     this.closed = closed 
   }
@@ -11,13 +15,18 @@ const doors = engine.getComponentGroup(Transform, DoorState)
 export class RotatorSystem implements ISystem {
  
   update(dt: number) {
-    for (let entity of doors.entities) {
-      let transform = entity.get(Transform)
-
-      if (entity.get(DoorState).closed == false && transform.rotation.eulerAngles.y <= 90) {
-        transform.rotate(Vector3.Up(), dt * 50)
-      } else if (entity.get(DoorState).closed == true && transform.rotation.eulerAngles.y > 0) {
-        transform.rotate(Vector3.Down(), dt * 50)
+    for (let door of doors.entities) {
+      let state = door.get(DoorState)
+      let transform = door.get(Transform)
+      
+      if (state.closed == false && state.fraction < 1) {
+        let pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction)
+        transform.rotation.eulerAngles = pos
+        state.fraction += dt/2
+      } else if (state.closed == true && state.fraction > 0) {
+        let pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction)
+        transform.rotation.eulerAngles = pos
+        state.fraction -= dt/2
       }
     }
   }
@@ -60,8 +69,9 @@ door.set(doorMaterial)
 door.get(BoxShape).withCollisions = true
 door.set(
   new OnClick(_ => {
-    let doorClosed = doorPivot.get(DoorState)
-    doorClosed.closed = !doorClosed.closed
+    let state = doorPivot.get(DoorState)
+    state.closed = !state.closed
+
   })
 )
 

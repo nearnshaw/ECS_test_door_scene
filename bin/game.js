@@ -29,6 +29,9 @@ define("game", ["require", "exports"], function (require, exports) {
         function DoorState(closed) {
             if (closed === void 0) { closed = true; }
             this.closed = true;
+            this.openPos = new Vector3(0, 90, 0);
+            this.closedPos = new Vector3(0, 0, 0);
+            this.fraction = 0;
             this.closed = closed;
         }
         DoorState = __decorate([
@@ -46,13 +49,18 @@ define("game", ["require", "exports"], function (require, exports) {
             var e_1, _a;
             try {
                 for (var _b = __values(doors.entities), _c = _b.next(); !_c.done; _c = _b.next()) {
-                    var entity = _c.value;
-                    var transform = entity.get(Transform);
-                    if (entity.get(DoorState).closed == false && transform.rotation.eulerAngles.y <= 90) {
-                        transform.rotate(Vector3.Up(), dt * 50);
+                    var door_1 = _c.value;
+                    var state = door_1.get(DoorState);
+                    var transform = door_1.get(Transform);
+                    if (state.closed == false && state.fraction < 1) {
+                        var pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction);
+                        transform.rotation.eulerAngles = pos;
+                        state.fraction += dt / 2;
                     }
-                    else if (entity.get(DoorState).closed == true && transform.rotation.eulerAngles.y > 0) {
-                        transform.rotate(Vector3.Down(), dt * 50);
+                    else if (state.closed == true && state.fraction > 0) {
+                        var pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction);
+                        transform.rotation.eulerAngles = pos;
+                        state.fraction -= dt / 2;
                     }
                 }
             }
@@ -98,8 +106,8 @@ define("game", ["require", "exports"], function (require, exports) {
     door.set(doorMaterial);
     door.get(BoxShape).withCollisions = true;
     door.set(new OnClick(function (_) {
-        var doorClosed = doorPivot.get(DoorState);
-        doorClosed.closed = !doorClosed.closed;
+        var state = doorPivot.get(DoorState);
+        state.closed = !state.closed;
     }));
     // Set the door as a child of doorPivot
     door.setParent(doorPivot);
