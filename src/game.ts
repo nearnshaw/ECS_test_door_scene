@@ -25,7 +25,7 @@ export class RotatorSystem implements ISystem {
 
 
 const doorMaterial = new Material()
-doorMaterial.albedoColor = '#FF0000'
+doorMaterial.albedoColor = Color3.Red()
 doorMaterial.metallic = 0.9
 doorMaterial.roughness = 0.1
 
