@@ -82,14 +82,14 @@ define("game", ["require", "exports"], function (require, exports) {
     // Define fixed walls
     var wall1 = new Entity();
     wall1.set(new Transform());
-    wall1.get(Transform).position.set(6, 1, 3);
-    wall1.get(Transform).scale.set(2, 2, 0.05);
+    wall1.get(Transform).position.set(5.75, 1, 3);
+    wall1.get(Transform).scale.set(1.5, 2, 0.05);
     wall1.set(new BoxShape());
     wall1.get(BoxShape).withCollisions = true;
     var wall2 = new Entity();
     wall2.set(new Transform());
-    wall2.get(Transform).position.set(3, 1, 3);
-    wall2.get(Transform).scale.set(2, 2, 0.05);
+    wall2.get(Transform).position.set(3.25, 1, 3);
+    wall2.get(Transform).scale.set(1.5, 2, 0.05);
     wall2.set(new BoxShape());
     wall2.get(BoxShape).withCollisions = true;
     // Define wrapper entity to rotate door. This is the entity that actually rotates.
