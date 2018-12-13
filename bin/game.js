@@ -9,9 +9,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __values = (this && this.__values) || function (o) {
     var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
@@ -25,42 +22,45 @@ var __values = (this && this.__values) || function (o) {
 define("game", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // custom component to handle opening and closing doors
     var DoorState = /** @class */ (function () {
-        function DoorState(closed) {
-            if (closed === void 0) { closed = true; }
+        function DoorState() {
             this.closed = true;
             this.openPos = new Vector3(0, 90, 0);
             this.closedPos = new Vector3(0, 0, 0);
             this.fraction = 0;
-            this.closed = closed;
         }
         DoorState = __decorate([
-            Component('doorState'),
-            __metadata("design:paramtypes", [Boolean])
+            Component('doorState')
         ], DoorState);
         return DoorState;
     }());
     exports.DoorState = DoorState;
-    var doors = engine.getComponentGroup(Transform, DoorState);
+    // a group to keep track of all entities with a DoorState component
+    var doors = engine.getComponentGroup(DoorState);
+    // a system to carry out the rotation
     var RotatorSystem = /** @class */ (function () {
         function RotatorSystem() {
         }
         RotatorSystem.prototype.update = function (dt) {
             var e_1, _a;
             try {
+                // iterate over the doors in the component group
                 for (var _b = __values(doors.entities), _c = _b.next(); !_c.done; _c = _b.next()) {
                     var door_1 = _c.value;
+                    // get some handy shortcuts
                     var state = door_1.get(DoorState);
                     var transform = door_1.get(Transform);
+                    // check if the rotation needs to be adjusted
                     if (state.closed == false && state.fraction < 1) {
+                        state.fraction += dt;
                         var pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction);
                         transform.rotation.eulerAngles = pos;
-                        state.fraction += dt / 2;
                     }
                     else if (state.closed == true && state.fraction > 0) {
+                        state.fraction -= dt;
                         var pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction);
                         transform.rotation.eulerAngles = pos;
-                        state.fraction -= dt / 2;
                     }
                 }
             }
@@ -75,10 +75,8 @@ define("game", ["require", "exports"], function (require, exports) {
         return RotatorSystem;
     }());
     exports.RotatorSystem = RotatorSystem;
-    var doorMaterial = new Material();
-    doorMaterial.albedoColor = Color3.Red();
-    doorMaterial.metallic = 0.9;
-    doorMaterial.roughness = 0.1;
+    // Add system to engine
+    engine.addSystem(new RotatorSystem());
     // Define fixed walls
     var wall1 = new Entity();
     wall1.set(new Transform());
@@ -86,36 +84,40 @@ define("game", ["require", "exports"], function (require, exports) {
     wall1.get(Transform).scale.set(1.5, 2, 0.05);
     wall1.set(new BoxShape());
     wall1.get(BoxShape).withCollisions = true;
+    engine.addEntity(wall1);
     var wall2 = new Entity();
     wall2.set(new Transform());
     wall2.get(Transform).position.set(3.25, 1, 3);
     wall2.get(Transform).scale.set(1.5, 2, 0.05);
     wall2.set(new BoxShape());
     wall2.get(BoxShape).withCollisions = true;
-    // Define wrapper entity to rotate door. This is the entity that actually rotates.
-    var doorPivot = new Entity();
-    doorPivot.set(new Transform());
-    doorPivot.get(Transform).position.set(4, 1, 3);
-    doorPivot.set(new DoorState());
+    engine.addEntity(wall2);
     // Add actual door to scene. This entity doesn't rotate, its parent drags it with it.
     var door = new Entity();
     door.set(new Transform());
     door.get(Transform).position.set(0.5, 0, 0);
     door.get(Transform).scale.set(1, 2, 0.05);
     door.set(new BoxShape());
-    door.set(doorMaterial);
     door.get(BoxShape).withCollisions = true;
-    door.set(new OnClick(function (_) {
-        var state = doorPivot.get(DoorState);
-        state.closed = !state.closed;
-    }));
+    engine.addEntity(door);
+    // Define a material to color the door red
+    var doorMaterial = new Material();
+    doorMaterial.albedoColor = Color3.Red();
+    doorMaterial.metallic = 0.9;
+    doorMaterial.roughness = 0.1;
+    // Assign the material to the door
+    door.set(doorMaterial);
+    // Define wrapper entity to rotate door. This is the entity that actually rotates.
+    var doorPivot = new Entity();
+    doorPivot.set(new Transform());
+    doorPivot.get(Transform).position.set(4, 1, 3);
+    doorPivot.set(new DoorState());
+    engine.addEntity(doorPivot);
     // Set the door as a child of doorPivot
     door.setParent(doorPivot);
-    // Add all entities to engine
-    engine.addEntity(wall1);
-    engine.addEntity(wall2);
-    engine.addEntity(doorPivot);
-    engine.addEntity(door);
-    // Add system to engine
-    engine.addSystem(new RotatorSystem());
+    // Set the click behavior for the door
+    door.set(new OnClick(function (e) {
+        var state = door.getParent().get(DoorState);
+        state.closed = !state.closed;
+    }));
 });
