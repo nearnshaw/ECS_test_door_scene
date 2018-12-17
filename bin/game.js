@@ -26,8 +26,8 @@ define("game", ["require", "exports"], function (require, exports) {
     var DoorState = /** @class */ (function () {
         function DoorState() {
             this.closed = true;
-            this.openPos = new Vector3(0, 90, 0);
-            this.closedPos = new Vector3(0, 0, 0);
+            this.openPos = Quaternion.Euler(0, 90, 0);
+            this.closedPos = Quaternion.Euler(0, 0, 0);
             this.fraction = 0;
         }
         DoorState = __decorate([
@@ -54,13 +54,13 @@ define("game", ["require", "exports"], function (require, exports) {
                     // check if the rotation needs to be adjusted
                     if (state.closed == false && state.fraction < 1) {
                         state.fraction += dt;
-                        var pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction);
-                        transform.rotation.eulerAngles = pos;
+                        var rot = Quaternion.Slerp(state.closedPos, state.openPos, state.fraction);
+                        transform.rotation = rot;
                     }
                     else if (state.closed == true && state.fraction > 0) {
                         state.fraction -= dt;
-                        var pos = Vector3.Lerp(state.closedPos, state.openPos, state.fraction);
-                        transform.rotation.eulerAngles = pos;
+                        var rot = Quaternion.Slerp(state.closedPos, state.openPos, state.fraction);
+                        transform.rotation = rot;
                     }
                 }
             }
