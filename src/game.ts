@@ -2,10 +2,21 @@
 @Component('doorState')
 export class DoorState {
   closed: boolean = true
-  openPos: Quaternion = Quaternion.Euler(0, 90, 0)
-  closedPos: Quaternion = Quaternion.Euler(0, 0, 0)
   fraction: number = 0
+  L: Entity
+  R: Entity
 }
+
+@Component('openDoor')
+export class OpenDoor {
+  closedPos: Vector3
+  openPos: Vector3
+  constructor(closed: Vector3, open: Vector3){
+    this.closedPos = closed
+    this.openPos = open
+  }
+}
+
 
 // a group to keep track of all entities with a DoorState component
 const doors = engine.getComponentGroup(DoorState)
@@ -19,17 +30,13 @@ export class RotatorSystem implements ISystem {
       
       // get some handy shortcuts
       let state = door.get(DoorState)
-      let transform = door.get(Transform)
-      
       // check if the rotation needs to be adjusted
       if (state.closed == false && state.fraction < 1) {
         state.fraction += dt
-        let rot = Quaternion.Slerp(state.closedPos, state.openPos, state.fraction)
-        transform.rotation = rot
+        updateDoors(door)
       } else if (state.closed == true && state.fraction > 0) {
         state.fraction -= dt
-        let rot = Quaternion.Slerp(state.closedPos, state.openPos, state.fraction)
-        transform.rotation = rot
+        updateDoors(door)   
       }
     }
   }
@@ -42,7 +49,7 @@ engine.addSystem(new RotatorSystem())
 const wall1 = new Entity()
 wall1.set(new Transform({
   position: new Vector3(5.75, 1, 3),
-  scale: new Vector3(1.5, 2, 0.05)
+  scale: new Vector3(1.5, 2, 0.1)
 }))
 wall1.set(new BoxShape())
 wall1.get(BoxShape).withCollisions = true
@@ -50,22 +57,33 @@ engine.addEntity(wall1)
 
 const wall2 = new Entity()
 wall2.set(new Transform({
-  position: new Vector3(3.25, 1, 3),
-  scale: new Vector3(1.5, 2, 0.05)
+  position: new Vector3(2.25, 1, 3),
+  scale: new Vector3(1.5, 2, 0.1)
 }))
 wall2.set(new BoxShape())
 wall2.get(BoxShape).withCollisions = true
 engine.addEntity(wall2)
 
-// Add actual door to scene. This entity doesn't rotate, its parent drags it with it.
-const door = new Entity()
-door.set(new Transform({
+// Add the two sides to the door
+const doorL = new Entity()
+doorL.set(new Transform({
   position: new Vector3(0.5, 0, 0),
-  scale: new Vector3(1, 2, 0.05)
+  scale: new Vector3(1.1, 2, 0.05)
 }))
-door.set(new BoxShape())
-door.get(BoxShape).withCollisions = true
-engine.addEntity(door)
+doorL.set(new BoxShape())
+doorL.get(BoxShape).withCollisions = true
+doorL.set(new OpenDoor(new Vector3(0.5, 0, 0), new Vector3(1.25, 0, 0)))
+engine.addEntity(doorL)
+
+const doorR = new Entity()
+doorR.set(new Transform({
+  position: new Vector3(-0.5, 0, 0),
+  scale: new Vector3(1.1, 2, 0.05)
+}))
+doorR.set(new BoxShape())
+doorR.get(BoxShape).withCollisions = true
+doorR.set(new OpenDoor(new Vector3(-0.5, 0, 0), new Vector3(-1.25, 0, 0)))
+engine.addEntity(doorR)
 
 // Define a material to color the door red
 const doorMaterial = new Material()
@@ -74,27 +92,50 @@ doorMaterial.metallic = 0.9
 doorMaterial.roughness = 0.1
 
 // Assign the material to the door
-door.set(doorMaterial)
+doorL.set(doorMaterial)
+doorR.set(doorMaterial)
 
-// Define wrapper entity to rotate door. This is the entity that actually rotates.
-const doorPivot = new Entity()
-doorPivot.set(new Transform({
+// This parent entity holds the state for both door sides
+const doorParent = new Entity()
+doorParent.set(new Transform({
   position: new Vector3(4, 1, 3)
 }))
-doorPivot.set(new DoorState())
-engine.addEntity(doorPivot)
+doorParent.set(new DoorState())
+doorParent.get(DoorState).L = doorL
+doorParent.get(DoorState).R = doorR
+engine.addEntity(doorParent)
 
 // Set the door as a child of doorPivot
-door.setParent(doorPivot)
+doorL.setParent(doorParent)
+doorR.setParent(doorParent)
+
 
 // Set the click behavior for the door
-door.set(
+doorL.set(
   new OnClick(e => {
-    let state = door.getParent().get(DoorState)
+    let state = doorL.getParent().get(DoorState)
     state.closed = !state.closed
   })
 )
 
+doorR.set(
+  new OnClick(e => {
+    let state = doorR.getParent().get(DoorState)
+    state.closed = !state.closed
+  })
+)
+
+
+function updateDoors(door: Entity){
+  let s = door.get(DoorState)
+  
+  let lo = s.L.get(OpenDoor)
+  let ro = s.R.get(OpenDoor)
+  let lt = s.L.get(Transform)
+  let rt = s.R.get(Transform)
+  lt.position = Vector3.Lerp(lo.closedPos, lo.openPos, s.fraction)
+  rt.position = Vector3.Lerp(ro.closedPos, ro.openPos, s.fraction)
+}
 
 
 
