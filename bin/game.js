@@ -77,28 +77,30 @@ define("game", ["require", "exports"], function (require, exports) {
     exports.RotatorSystem = RotatorSystem;
     // Add system to engine
     engine.addSystem(new RotatorSystem());
+    var collideBox = new BoxShape();
+    collideBox.withCollisions = true;
     // Define fixed walls
     var wall1 = new Entity();
-    wall1.set(new Transform());
-    wall1.get(Transform).position.set(5.75, 1, 3);
-    wall1.get(Transform).scale.set(1.5, 2, 0.05);
-    wall1.set(new BoxShape());
-    wall1.get(BoxShape).withCollisions = true;
+    wall1.set(new Transform({
+        position: new Vector3(5.75, 1, 3),
+        scale: new Vector3(1.5, 2, 0.05)
+    }));
+    wall1.set(collideBox);
     engine.addEntity(wall1);
     var wall2 = new Entity();
-    wall2.set(new Transform());
-    wall2.get(Transform).position.set(3.25, 1, 3);
-    wall2.get(Transform).scale.set(1.5, 2, 0.05);
-    wall2.set(new BoxShape());
-    wall2.get(BoxShape).withCollisions = true;
+    wall2.set(new Transform({
+        position: new Vector3(3.25, 1, 3),
+        scale: new Vector3(1.5, 2, 0.05)
+    }));
+    wall2.set(collideBox);
     engine.addEntity(wall2);
     // Add actual door to scene. This entity doesn't rotate, its parent drags it with it.
     var door = new Entity();
-    door.set(new Transform());
-    door.get(Transform).position.set(0.5, 0, 0);
-    door.get(Transform).scale.set(1, 2, 0.05);
-    door.set(new BoxShape());
-    door.get(BoxShape).withCollisions = true;
+    door.set(new Transform({
+        position: new Vector3(0.5, 0, 0),
+        scale: new Vector3(1, 2, 0.05)
+    }));
+    door.set(collideBox);
     engine.addEntity(door);
     // Define a material to color the door red
     var doorMaterial = new Material();
@@ -109,8 +111,9 @@ define("game", ["require", "exports"], function (require, exports) {
     door.set(doorMaterial);
     // Define wrapper entity to rotate door. This is the entity that actually rotates.
     var doorPivot = new Entity();
-    doorPivot.set(new Transform());
-    doorPivot.get(Transform).position.set(4, 1, 3);
+    doorPivot.set(new Transform({
+        position: new Vector3(4, 1, 3)
+    }));
     doorPivot.set(new DoorState());
     engine.addEntity(doorPivot);
     // Set the door as a child of doorPivot
